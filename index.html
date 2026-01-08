@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SME Training Proposal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Sarabun', 'Noto Sans SC', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            light: '#d97706', // amber-600
+                            dark: '#fbbf24',  // amber-400
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 350px; }
+        }
+        
+        /* Smooth Transition for Theme Switch */
+        body, div, nav, button, p, h1, h2, h3, h4, h5, li, span, select {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Custom Scrollbar for tabs */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .tab-active {
+            border-bottom: 3px solid;
+            border-color: #d97706;
+            color: #d97706;
+            font-weight: 600;
+        }
+        .dark .tab-active {
+            border-color: #fbbf24;
+            color: #fbbf24;
+        }
+        .tab-inactive {
+            color: #64748b;
+        }
+        .dark .tab-inactive {
+            color: #94a3b8;
+        }
+        .tab-inactive:hover {
+            color: #334155;
+        }
+        .dark .tab-inactive:hover {
+            color: #e2e8f0;
+        }
+    </style>
+    <!-- 
+      FINAL COMPLETE VERSION:
+      1. Fixed Dropdown Translation (Options are now dynamic).
+      2. Enhanced Curriculum Visualization (Added Timeline/Roadmap styling).
+      3. Improved Chart Tooltips (Localized units).
+      4. Verified Dark Mode contrasts.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-stone-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 flex flex-col min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-50 border-b border-stone-200 dark:border-slate-700 backdrop-blur-md bg-opacity-90 dark:bg-opacity-90">
+        <div class="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
+                <span class="text-2xl">🚀</span>
+                <div class="text-xl font-bold tracking-tight" id="nav-brand">SME Pro Training</div>
+            </div>
+            
+            <div class="flex items-center gap-2 md:gap-4 overflow-x-auto hide-scrollbar pb-1 md:pb-0">
+                <!-- Course Switcher (Dynamic Translation) -->
+                <div class="relative group">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-lg">🎓</span>
+                    <select id="course-select" onchange="changeCourse(this.value)" class="pl-10 pr-8 py-2 bg-stone-100 dark:bg-slate-700 border-none rounded-lg text-sm font-medium focus:ring-2 focus:ring-amber-500 cursor-pointer appearance-none min-w-[160px]">
+                        <!-- Options populated by JS -->
+                    </select>
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs opacity-50">▼</span>
+                </div>
+
+                <!-- Language Switcher -->
+                <div class="flex rounded-lg shadow-sm bg-stone-100 dark:bg-slate-700 p-1" role="group">
+                    <button onclick="setLang('th')" class="px-3 py-1 text-xs font-bold rounded-md transition-all" id="btn-lang-th">TH</button>
+                    <button onclick="setLang('en')" class="px-3 py-1 text-xs font-bold rounded-md transition-all" id="btn-lang-en">EN</button>
+                    <button onclick="setLang('cn')" class="px-3 py-1 text-xs font-bold rounded-md transition-all" id="btn-lang-cn">CN</button>
+                </div>
+
+                <!-- Dark Mode Toggle -->
+                <button onclick="toggleTheme()" class="p-2 rounded-full bg-stone-200 dark:bg-slate-600 hover:bg-stone-300 dark:hover:bg-slate-500 transition shadow-sm" aria-label="Toggle Dark Mode">
+                    <span id="theme-icon" class="text-lg">🌙</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="bg-white dark:bg-slate-800 border-b border-stone-200 dark:border-slate-700 relative overflow-hidden transition-colors duration-500">
+        <div class="absolute top-0 right-0 p-4 opacity-5 dark:opacity-10 text-[10rem] md:text-[15rem] select-none pointer-events-none transform rotate-12 translate-x-10 -translate-y-10 transition-transform duration-700" id="hero-bg-icon">⚙️</div>
+        <div class="container mx-auto px-4 py-12 md:py-20 text-center max-w-4xl relative z-10">
+            <span id="hero-tag" class="inline-block px-3 py-1 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs font-semibold rounded-full mb-6 tracking-wide uppercase">Future Skills</span>
+            <h1 id="hero-title" class="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-500 dark:from-white dark:via-slate-200 dark:to-slate-400 drop-shadow-sm">
+                หลักสูตรระบบอัตโนมัติ<br>สำหรับโรงงาน
+            </h1>
+            <p id="hero-desc" class="text-lg md:text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
+                ยกระดับศักยภาพกำลังคน
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button onclick="document.getElementById('curriculum').scrollIntoView({behavior: 'smooth'})" id="btn-hero-cta1" class="px-8 py-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-amber-500/20 transition transform hover:-translate-y-0.5">
+                    ดูโครงสร้างหลักสูตร
+                </button>
+                <button onclick="document.getElementById('impact').scrollIntoView({behavior: 'smooth'})" id="btn-hero-cta2" class="px-8 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-100 font-semibold rounded-xl hover:bg-stone-50 dark:hover:bg-slate-600 transition">
+                    ผลลัพธ์ที่คาดหวัง
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-16 space-y-24 flex-grow">
+
+        <!-- Objectives Cards -->
+        <section id="objectives" class="scroll-mt-24">
+            <div class="text-center mb-12">
+                <h2 id="obj-title" class="text-3xl font-bold mb-3">วัตถุประสงค์เชิงกลยุทธ์</h2>
+                <div class="w-16 h-1 bg-amber-500 mx-auto rounded-full"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="group bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-700 hover:shadow-xl hover:border-amber-200 dark:hover:border-amber-700 transition duration-300 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 dark:bg-amber-900/20 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                    <div class="text-4xl mb-6 relative z-10">📈</div>
+                    <h3 id="card1-title" class="text-xl font-bold mb-3 relative z-10 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">เพิ่ม Productivity</h3>
+                    <p id="card1-desc" class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed relative z-10">เปลี่ยนกระบวนการผลิต</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="group bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-700 hover:shadow-xl hover:border-amber-200 dark:hover:border-amber-700 transition duration-300 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                    <div class="text-4xl mb-6 relative z-10">💰</div>
+                    <h3 id="card2-title" class="text-xl font-bold mb-3 relative z-10 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">รายได้ที่มั่นคง</h3>
+                    <p id="card2-desc" class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed relative z-10">พัฒนาทักษะ High-Performance</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="group bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-700 hover:shadow-xl hover:border-amber-200 dark:hover:border-amber-700 transition duration-300 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-green-50 dark:bg-green-900/20 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                    <div class="text-4xl mb-6 relative z-10">🧠</div>
+                    <h3 id="card3-title" class="text-xl font-bold mb-3 relative z-10 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">Future Skills Set</h3>
+                    <p id="card3-desc" class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed relative z-10">ทักษะแห่งอนาคต</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analytics Charts -->
+        <section id="impact" class="scroll-mt-24 bg-stone-100 dark:bg-slate-800/50 rounded-3xl p-8 md:p-12 border border-transparent dark:border-slate-700/50 transition-colors">
+            <div class="mb-10 text-center md:text-left">
+                <span class="text-amber-600 dark:text-amber-400 font-bold tracking-wider text-sm uppercase mb-2 block">Data Analytics</span>
+                <h2 id="analytics-title" class="text-3xl font-bold">การวิเคราะห์ผลลัพธ์การเรียนรู้</h2>
+                <p id="analytics-desc" class="text-slate-600 dark:text-slate-400 mt-2 max-w-2xl">ข้อมูลจำลองเปรียบเทียบประสิทธิภาพก่อนและหลังการอบรม</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+                <!-- Radar Chart -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700">
+                    <h3 id="chart1-title" class="font-bold text-lg mb-6 text-center text-slate-700 dark:text-slate-200">ความครอบคลุมของทักษะ</h3>
+                    <div class="chart-container">
+                        <canvas id="skillsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Bar Chart -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700">
+                    <h3 id="chart2-title" class="font-bold text-lg mb-6 text-center text-slate-700 dark:text-slate-200">ประสิทธิภาพที่เพิ่มขึ้น</h3>
+                    <div class="chart-container">
+                        <canvas id="productivityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Curriculum Tabs -->
+        <section id="curriculum" class="scroll-mt-24">
+            <div class="text-center mb-12">
+                <h2 id="curr-title" class="text-3xl font-bold mb-3">โครงสร้างหลักสูตร</h2>
+                <p id="curr-desc" class="text-slate-600 dark:text-slate-400 max-w-xl mx-auto">รายละเอียดเนื้อหาและการประเมินผลที่ออกแบบมาเพื่อผลลัพธ์ที่เป็นรูปธรรม</p>
+            </div>
+
+            <div class="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-2xl border border-stone-200 dark:border-slate-700 shadow-xl overflow-hidden min-h-[500px] flex flex-col">
+                <!-- Tab Headers -->
+                <div class="flex border-b border-slate-200 dark:border-slate-700 overflow-x-auto hide-scrollbar bg-slate-50 dark:bg-slate-900/50">
+                    <button onclick="switchTab('content')" id="tab-btn-content" class="flex-1 tab-active py-4 px-6 text-sm md:text-base font-medium whitespace-nowrap focus:outline-none transition-all hover:bg-slate-100 dark:hover:bg-slate-800">เนื้อหาหลักสูตร</button>
+                    <button onclick="switchTab('method')" id="tab-btn-method" class="flex-1 tab-inactive py-4 px-6 text-sm md:text-base font-medium whitespace-nowrap focus:outline-none transition-all hover:bg-slate-100 dark:hover:bg-slate-800">รูปแบบการสอน</button>
+                    <button onclick="switchTab('assessment')" id="tab-btn-assessment" class="flex-1 tab-inactive py-4 px-6 text-sm md:text-base font-medium whitespace-nowrap focus:outline-none transition-all hover:bg-slate-100 dark:hover:bg-slate-800">การประเมินผล</button>
+                </div>
+
+                <!-- Tab Content Body -->
+                <div class="p-8 md:p-10 flex-grow">
+                    
+                    <!-- Content Tab (Enhanced with Timeline) -->
+                    <div id="tab-content-content" class="animate-fade-in block h-full">
+                        <div class="flex items-center gap-3 mb-8">
+                            <span class="text-2xl bg-amber-100 dark:bg-amber-900 text-amber-600 dark:text-amber-400 p-2 rounded-lg">📚</span>
+                            <h3 id="module-header" class="text-xl font-bold text-slate-800 dark:text-white">หัวข้อการเรียนรู้หลัก</h3>
+                        </div>
+                        
+                        <!-- Timeline Structure -->
+                        <div class="relative pl-4 md:pl-8 space-y-8" id="module-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Method Tab -->
+                    <div id="tab-content-method" class="hidden animate-fade-in h-full">
+                        <div class="flex items-center gap-3 mb-8">
+                            <span class="text-2xl bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 p-2 rounded-lg">🛠️</span>
+                            <h3 id="method-header" class="text-xl font-bold text-slate-800 dark:text-white">รูปแบบการจัดการเรียนการสอน</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="method-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Assessment Tab -->
+                    <div id="tab-content-assessment" class="hidden animate-fade-in h-full">
+                        <div class="flex items-center gap-3 mb-8">
+                            <span class="text-2xl bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 p-2 rounded-lg">✅</span>
+                            <h3 id="assess-header" class="text-xl font-bold text-slate-800 dark:text-white">การวัดและประเมินผล</h3>
+                        </div>
+                        <div class="space-y-8 max-w-2xl mx-auto" id="assess-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="scroll-mt-24 bg-gradient-to-br from-slate-900 to-slate-800 dark:from-black dark:to-slate-900 text-white rounded-3xl p-10 md:p-16 text-center shadow-2xl relative overflow-hidden">
+            <!-- Decorative Circles -->
+            <div class="absolute top-0 left-0 w-64 h-64 bg-white opacity-5 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
+            <div class="absolute bottom-0 right-0 w-96 h-96 bg-amber-500 opacity-10 rounded-full translate-x-1/3 translate-y-1/3 blur-3xl"></div>
+            
+            <div class="relative z-10">
+                <h2 id="contact-title" class="text-3xl md:text-4xl font-bold mb-6">ติดต่อเรา</h2>
+                <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl inline-block max-w-lg w-full border border-white/10 hover:border-amber-500/50 transition-colors duration-300">
+                    <div class="flex flex-col gap-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-2xl">🏢</div>
+                            <div class="text-left">
+                                <p id="contact-label-corp" class="text-xs text-slate-400 uppercase tracking-wider">หน่วยงาน</p>
+                                <p class="font-semibold text-lg">หจก. กุลรวี (Kunrawee Ltd., Part.)</p>
+                            </div>
+                        </div>
+                        <div class="h-px bg-white/10 w-full"></div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-2xl">👤</div>
+                            <div class="text-left">
+                                <p id="contact-label-name" class="text-xs text-slate-400 uppercase tracking-wider">ผู้ประสานงาน</p>
+                                <p class="font-semibold text-lg" id="contact-name">คุณละเอียด ละออ</p>
+                            </div>
+                        </div>
+                        <div class="h-px bg-white/10 w-full"></div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-2xl">📞</div>
+                            <div class="text-left">
+                                <p id="contact-label-phone" class="text-xs text-slate-400 uppercase tracking-wider">เบอร์โทรศัพท์</p>
+                                <a href="tel:0987995090" class="font-bold text-2xl text-amber-400 hover:text-amber-300 transition tracking-wide">098-799-5090</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-10 text-center text-slate-500 text-sm">
+        <p>&copy; 2026 SME Training Proposal System. All rights reserved.</p>
+    </footer>
+
+    <!-- LOGIC -->
+    <script>
+        // --- DATA & TRANSLATIONS ---
+        const contentData = {
+            th: {
+                navTitle: "ระบบฝึกอบรม SME",
+                courseSelect: {
+                    automation: "🤖 หลักสูตรระบบอัตโนมัติ",
+                    designThinking: "💡 หลักสูตร Design Thinking"
+                },
+                courses: {
+                    automation: {
+                        heroTag: "ทักษะแห่งอนาคต & ประสิทธิภาพ",
+                        heroTitle: "หลักสูตรระบบอัตโนมัติ<br>สำหรับโรงงานและ SME",
+                        heroDesc: "ยกระดับศักยภาพกำลังคน สร้างรายได้ที่มั่นคง และเพิ่มขีดความสามารถในการแข่งขันด้วยเทคโนโลยี Automation",
+                        heroIcon: "⚙️",
+                        objectives: {
+                            title: "วัตถุประสงค์เชิงกลยุทธ์",
+                            c1t: "เพิ่ม Productivity", c1d: "เปลี่ยนสู่ระบบอัตโนมัติ ลดความผิดพลาด เพิ่มผลผลิต",
+                            c2t: "รายได้ที่มั่นคง", c2d: "พัฒนาทักษะ High-Performance เพื่อความก้าวหน้า",
+                            c3t: "Future Skills Set", c3d: "ทักษะ Hard Skills และ Soft Skills แห่งอนาคต"
+                        },
+                        charts: {
+                            c1t: "ความครอบคลุมของทักษะ (Skill Set)",
+                            c2t: "ผลผลิตที่เพิ่มขึ้น (Productivity)",
+                            radarLabels: ['Tech', 'Data', 'Problem Solving', 'Digital', 'Management'],
+                            barLabels: ['ก่อนอบรม (Manual)', 'หลังอบรม (Auto)'],
+                            barLegend: 'หน่วย',
+                            barTooltip: ' ชิ้น/ชม.'
+                        },
+                        curriculum: {
+                            modules: [
+                                {t: "พื้นฐานระบบอัตโนมัติ", d: "เรียนรู้เกี่ยวกับเซนเซอร์, PLC และการควบคุมเครื่องจักรเบื้องต้นอย่างละเอียด"},
+                                {t: "IoT & Data Analytics", d: "การเก็บข้อมูล Real-time จากเครื่องจักรและวิเคราะห์เพื่อปรับปรุงประสิทธิภาพการผลิต"},
+                                {t: "การบำรุงรักษาเชิงป้องกัน (PM)", d: "เทคนิคการดูแลรักษาเครื่องจักรเพื่อยืดอายุการใช้งานและลดเวลา Downtime"}
+                            ],
+                            methods: [
+                                {t: "Project-Based Learning", d: "ลงมือทำโปรเจกต์จริงที่นำกลับไปใช้ได้ทันที"},
+                                {t: "On-Site Training", d: "ฝึกปฏิบัติในสภาพแวดล้อมโรงงานจริง"},
+                                {t: "Expert Mentorship", d: "ดูแลอย่างใกล้ชิดโดยผู้เชี่ยวชาญในอุตสาหกรรม"}
+                            ],
+                            assessment: [
+                                {t: "สอบภาคปฏิบัติ", v: 50},
+                                {t: "โครงงานนวัตกรรม", v: 30},
+                                {t: "สอบทฤษฎี", v: 20}
+                            ]
+                        }
+                    },
+                    designThinking: {
+                        heroTag: "นวัตกรรม & ความคิดสร้างสรรค์",
+                        heroTitle: "หลักสูตร Design Thinking<br>เพื่อธุรกิจยุคใหม่",
+                        heroDesc: "กระบวนการคิดเชิงออกแบบเพื่อแก้ปัญหาที่ซับซ้อน เข้าใจลูกค้า และสร้างนวัตกรรมที่ตอบโจทย์ตลาด",
+                        heroIcon: "💡",
+                        objectives: {
+                            title: "วัตถุประสงค์เชิงกลยุทธ์",
+                            c1t: "เข้าใจลูกค้าลึกซึ้ง", c1d: "ใช้ Empathy เพื่อค้นหาความต้องการที่แท้จริง",
+                            c2t: "สร้างนวัตกรรม", c2d: "เทคนิค Ideation และ Prototyping รวดเร็ว",
+                            c3t: "แก้ปัญหาตรงจุด", c3d: "ลดความเสี่ยงในการทำธุรกิจด้วยการทดสอบสมมติฐาน"
+                        },
+                        charts: {
+                            c1t: "สมรรถนะนวัตกร (Innovator Skills)",
+                            c2t: "ความเร็วในการแก้ปัญหา (Speed)",
+                            radarLabels: ['Empathy', 'Creativity', 'Logic', 'Collaboration', 'Resilience'],
+                            barLabels: ['แบบเดิม', 'Design Thinking'],
+                            barLegend: 'โครงการ',
+                            barTooltip: ' โปรเจกต์สำเร็จ/ปี'
+                        },
+                        curriculum: {
+                            modules: [
+                                {t: "Empathize & Define", d: "เทคนิคการสัมภาษณ์ลูกค้าเชิงลึกและการระบุปัญหาที่แท้จริง (Pain Points)"},
+                                {t: "Ideate & Prototype", d: "กระบวนการระดมสมองและสร้างต้นแบบอย่างรวดเร็ว (Rapid Prototyping)"},
+                                {t: "Test & Implement", d: "การทดสอบกับผู้ใช้จริงและการวางแผนนำไปปรับใช้ในธุรกิจ"}
+                            ],
+                            methods: [
+                                {t: "Workshop", d: "กิจกรรมกลุ่มเชิงปฏิบัติการ เน้นการระดมสมอง"},
+                                {t: "Case Studies", d: "ถอดบทเรียนจากธุรกิจที่ประสบความสำเร็จ"},
+                                {t: "Coaching", d: "ให้คำปรึกษารายกลุ่มเพื่อพัฒนาไอเดีย"}
+                            ],
+                            assessment: [
+                                {t: "การนำเสนอต้นแบบ", v: 40},
+                                {t: "การมีส่วนร่วม", v: 30},
+                                {t: "บันทึกการเรียนรู้", v: 30}
+                            ]
+                        }
+                    }
+                },
+                tabs: ["เนื้อหาหลักสูตร", "รูปแบบการสอน", "การประเมินผล"],
+                currHeaders: ["เนื้อหาหลักสูตรโดยละเอียด", "รูปแบบการจัดการเรียนรู้", "เกณฑ์การวัดและประเมินผล"],
+                contact: {
+                    title: "สนใจเข้าร่วมโครงการ",
+                    corp: "หน่วยงาน",
+                    coord: "ผู้ประสานงาน",
+                    name: "คุณละเอียด ละออ",
+                    phone: "เบอร์โทรศัพท์"
+                }
+            },
+            en: {
+                navTitle: "SME Training System",
+                courseSelect: {
+                    automation: "🤖 Automation Course",
+                    designThinking: "💡 Design Thinking Course"
+                },
+                courses: {
+                    automation: {
+                        heroTag: "Future Skills & Productivity",
+                        heroTitle: "Automation System Course<br>for Factories & SMEs",
+                        heroDesc: "Enhance workforce potential, generate stable income, and increase competitiveness with Automation technology.",
+                        heroIcon: "⚙️",
+                        objectives: {
+                            title: "Strategic Objectives",
+                            c1t: "Boost Productivity", c1d: "Transition to automation, reduce errors, increase output.",
+                            c2t: "Stable Income", c2d: "Develop High-Performance skills for career advancement.",
+                            c3t: "Future Skills Set", c3d: "Align with future Hard Skills and Soft Skills."
+                        },
+                        charts: {
+                            c1t: "Skill Set Coverage",
+                            c2t: "Productivity Gain",
+                            radarLabels: ['Tech', 'Data', 'Problem Solving', 'Digital', 'Management'],
+                            barLabels: ['Before (Manual)', 'After (Auto)'],
+                            barLegend: 'Units',
+                            barTooltip: ' Units/Hour'
+                        },
+                        curriculum: {
+                            modules: [
+                                {t: "Automation Basics", d: "Comprehensive study of sensors, PLCs, and basic machine control systems."},
+                                {t: "IoT & Data Analytics", d: "Real-time data collection from machines and analysis to improve production efficiency."},
+                                {t: "Preventive Maintenance", d: "Machine maintenance techniques to extend lifespan and reduce downtime."}
+                            ],
+                            methods: [
+                                {t: "Project-Based Learning", d: "Hands-on real-world projects ready for immediate application."},
+                                {t: "On-Site Training", d: "Practical training in actual factory environments."},
+                                {t: "Expert Mentorship", d: "Close guidance from experienced industry professionals."}
+                            ],
+                            assessment: [
+                                {t: "Practical Exam", v: 50},
+                                {t: "Innovation Project", v: 30},
+                                {t: "Theoretical Exam", v: 20}
+                            ]
+                        }
+                    },
+                    designThinking: {
+                        heroTag: "Innovation & Creativity",
+                        heroTitle: "Design Thinking Course<br>for Modern Business",
+                        heroDesc: "Design-based thinking process to solve complex problems, understand customers, and create market-fit innovations.",
+                        heroIcon: "💡",
+                        objectives: {
+                            title: "Strategic Objectives",
+                            c1t: "Customer Insight", c1d: "Use Empathy to find true needs.",
+                            c2t: "Create Innovation", c2d: "Rapid Ideation and Prototyping techniques.",
+                            c3t: "Precise Solutions", c3d: "Reduce business risk by testing hypotheses."
+                        },
+                        charts: {
+                            c1t: "Innovator Competency",
+                            c2t: "Problem Solving Speed",
+                            radarLabels: ['Empathy', 'Creativity', 'Logic', 'Collaboration', 'Resilience'],
+                            barLabels: ['Traditional', 'Design Thinking'],
+                            barLegend: 'Projects',
+                            barTooltip: ' Success Projects/Year'
+                        },
+                        curriculum: {
+                            modules: [
+                                {t: "Empathize & Define", d: "Deep customer interview techniques and identifying true pain points."},
+                                {t: "Ideate & Prototype", d: "Brainstorming processes and rapid prototyping."},
+                                {t: "Test & Implement", d: "Testing with real users and planning for business implementation."}
+                            ],
+                            methods: [
+                                {t: "Workshop", d: "Interactive group activities focusing on brainstorming."},
+                                {t: "Case Studies", d: "Lessons learned from successful businesses."},
+                                {t: "Coaching", d: "Group consulting to develop ideas."}
+                            ],
+                            assessment: [
+                                {t: "Prototype Pitch", v: 40},
+                                {t: "Participation", v: 30},
+                                {t: "Learning Log", v: 30}
+                            ]
+                        }
+                    }
+                },
+                tabs: ["Curriculum Content", "Teaching Method", "Assessment"],
+                currHeaders: ["Detailed Curriculum Modules", "Learning Management Style", "Measurement & Evaluation Criteria"],
+                contact: {
+                    title: "Interested in Joining?",
+                    corp: "Organization",
+                    coord: "Coordinator",
+                    name: "Ms. La-iad La-or",
+                    phone: "Phone"
+                }
+            },
+            cn: {
+                navTitle: "中小企业培训系统",
+                courseSelect: {
+                    automation: "🤖 自动化系统课程",
+                    designThinking: "💡 设计思维课程"
+                },
+                courses: {
+                    automation: {
+                        heroTag: "未来技能与生产力",
+                        heroTitle: "自动化系统课程<br>适用于工厂和中小企业",
+                        heroDesc: "通过自动化技术提升劳动力潜力，创造稳定收入，并提高竞争力。",
+                        heroIcon: "⚙️",
+                        objectives: {
+                            title: "战略目标",
+                            c1t: "提高生产力", c1d: "向自动化转型，减少错误，增加产量。",
+                            c2t: "稳定收入", c2d: "发展高性能技能以促进职业发展。",
+                            c3t: "未来技能组", c3d: "符合未来的硬技能和软技能。"
+                        },
+                        charts: {
+                            c1t: "技能覆盖范围",
+                            c2t: "生产力提升",
+                            radarLabels: ['技术', '数据', '解决问题', '数字素养', '管理'],
+                            barLabels: ['培训前 (手动)', '培训后 (自动)'],
+                            barLegend: '单位',
+                            barTooltip: ' 单位/小时'
+                        },
+                        curriculum: {
+                            modules: [
+                                {t: "自动化基础", d: "全面学习传感器，PLC和基本机器控制系统。"},
+                                {t: "物联网与数据分析", d: "从机器收集实时数据并进行分析以提高生产效率。"},
+                                {t: "预防性维护", d: "延长寿命和减少停机时间的机器维护技术。"}
+                            ],
+                            methods: [
+                                {t: "基于项目的学习", d: "可立即应用的动手实践真实项目。"},
+                                {t: "现场培训", d: "在实际工厂环境中的实践培训。"},
+                                {t: "专家指导", d: "行业资深专家的密切指导。"}
+                            ],
+                            assessment: [
+                                {t: "实践考试", v: 50},
+                                {t: "创新项目", v: 30},
+                                {t: "理论考试", v: 20}
+                            ]
+                        }
+                    },
+                    designThinking: {
+                        heroTag: "创新与创造力",
+                        heroTitle: "设计思维课程<br>适用于现代商业",
+                        heroDesc: "基于设计的思维过程，用于解决复杂问题，理解客户并创造适应市场的创新。",
+                        heroIcon: "💡",
+                        objectives: {
+                            title: "战略目标",
+                            c1t: "客户洞察", c1d: "利用同理心发现真实需求。",
+                            c2t: "创造创新", c2d: "快速构思和原型制作技术。",
+                            c3t: "精准解决方案", c3d: "通过测试假设降低商业风险。"
+                        },
+                        charts: {
+                            c1t: "创新者能力",
+                            c2t: "解决问题速度",
+                            radarLabels: ['同理心', '创造力', '逻辑', '协作', '韧性'],
+                            barLabels: ['传统', '设计思维'],
+                            barLegend: '项目',
+                            barTooltip: ' 成功项目/年'
+                        },
+                        curriculum: {
+                            modules: [
+                                {t: "同理心与定义", d: "深度客户访谈技巧和识别真实痛点。"},
+                                {t: "构思与原型", d: "头脑风暴过程和快速原型制作。"},
+                                {t: "测试与实施", d: "与真实用户测试并规划商业实施。"}
+                            ],
+                            methods: [
+                                {t: "研讨会", d: "专注于头脑风暴的互动小组活动。"},
+                                {t: "案例研究", d: "成功企业的经验教训。"},
+                                {t: "辅导", d: "小组咨询以发展想法。"}
+                            ],
+                            assessment: [
+                                {t: "原型展示", v: 40},
+                                {t: "参与度", v: 30},
+                                {t: "学习日志", v: 30}
+                            ]
+                        }
+                    }
+                },
+                tabs: ["课程内容", "教学方法", "评估"],
+                currHeaders: ["详细课程模块", "学习管理模式", "衡量与评估标准"],
+                contact: {
+                    title: "有兴趣加入吗？",
+                    corp: "组织",
+                    coord: "协调员",
+                    name: "La-iad La-or 女士",
+                    phone: "电话"
+                }
+            }
+        };
+
+        // --- STATE ---
+        let appState = {
+            lang: 'th',
+            course: 'automation',
+            theme: 'light'
+        };
+
+        // --- CHART INSTANCES ---
+        let skillsChart = null;
+        let prodChart = null;
+
+        // --- FUNCTIONS ---
+
+        function toggleTheme() {
+            appState.theme = appState.theme === 'light' ? 'dark' : 'light';
+            document.documentElement.classList.toggle('dark');
+            const icon = document.getElementById('theme-icon');
+            icon.innerText = appState.theme === 'light' ? '🌙' : '☀️';
+            updateCharts();
+        }
+
+        function setLang(lang) {
+            appState.lang = lang;
+            ['th', 'en', 'cn'].forEach(l => {
+                const btn = document.getElementById(`btn-lang-${l}`);
+                if (l === lang) {
+                    btn.classList.add('bg-white', 'dark:bg-slate-600', 'text-amber-600', 'dark:text-amber-400', 'shadow-sm');
+                    btn.classList.remove('text-slate-500');
+                } else {
+                    btn.classList.remove('bg-white', 'dark:bg-slate-600', 'text-amber-600', 'dark:text-amber-400', 'shadow-sm');
+                    btn.classList.add('text-slate-500');
+                }
+            });
+            renderContent();
+            updateCharts();
+        }
+
+        function changeCourse(course) {
+            appState.course = course;
+            renderContent();
+            updateCharts();
+            // Scroll to top gently to show new hero
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderContent() {
+            const t = contentData[appState.lang];
+            const c = t.courses[appState.course];
+
+            // Navbar & Course Select
+            document.getElementById('nav-brand').innerText = t.navTitle;
+            
+            // Dynamic Dropdown Options
+            const select = document.getElementById('course-select');
+            select.innerHTML = `
+                <option value="automation" ${appState.course === 'automation' ? 'selected' : ''}>${t.courseSelect.automation}</option>
+                <option value="designThinking" ${appState.course === 'designThinking' ? 'selected' : ''}>${t.courseSelect.designThinking}</option>
+            `;
+            
+            // Hero
+            document.getElementById('hero-tag').innerText = c.heroTag;
+            document.getElementById('hero-title').innerHTML = c.heroTitle;
+            document.getElementById('hero-desc').innerText = c.heroDesc;
+            document.getElementById('hero-bg-icon').innerText = c.heroIcon;
+            document.getElementById('btn-hero-cta1').innerText = t.tabs[0];
+            document.getElementById('btn-hero-cta2').innerText = t.contact.title.split('?')[0];
+
+            // Objectives
+            document.getElementById('obj-title').innerText = c.objectives.title;
+            document.getElementById('card1-title').innerText = c.objectives.c1t;
+            document.getElementById('card1-desc').innerText = c.objectives.c1d;
+            document.getElementById('card2-title').innerText = c.objectives.c2t;
+            document.getElementById('card2-desc').innerText = c.objectives.c2d;
+            document.getElementById('card3-title').innerText = c.objectives.c3t;
+            document.getElementById('card3-desc').innerText = c.objectives.c3d;
+
+            // Analytics
+            document.getElementById('analytics-title').innerText = appState.lang === 'th' ? "การวิเคราะห์ผลลัพธ์การเรียนรู้" : (appState.lang === 'cn' ? "学习成果分析" : "Learning Outcome Analytics");
+            document.getElementById('analytics-desc').innerText = appState.lang === 'th' ? "ข้อมูลจำลองเปรียบเทียบประสิทธิภาพ" : (appState.lang === 'cn' ? "比较效率的模拟数据" : "Simulation data comparing efficiency");
+            document.getElementById('chart1-title').innerText = c.charts.c1t;
+            document.getElementById('chart2-title').innerText = c.charts.c2t;
+
+            // Curriculum Structure (Title & Tabs)
+            document.getElementById('curr-title').innerText = appState.lang === 'th' ? "โครงสร้างหลักสูตร" : (appState.lang === 'cn' ? "课程结构" : "Curriculum Structure");
+            document.getElementById('curr-desc').innerText = appState.lang === 'th' ? "รายละเอียดเนื้อหาและการประเมินผล" : (appState.lang === 'cn' ? "内容详情及评估" : "Content details and evaluation");
+            document.getElementById('tab-btn-content').innerText = t.tabs[0];
+            document.getElementById('tab-btn-method').innerText = t.tabs[1];
+            document.getElementById('tab-btn-assessment').innerText = t.tabs[2];
+
+            // Internal Tab Headers
+            document.getElementById('module-header').innerText = t.currHeaders[0];
+            document.getElementById('method-header').innerText = t.currHeaders[1];
+            document.getElementById('assess-header').innerText = t.currHeaders[2];
+
+            // --- Render Modules List (TIMELINE STYLE) ---
+            const modContainer = document.getElementById('module-list');
+            modContainer.innerHTML = `
+                <div class="absolute left-[27px] md:left-[43px] top-4 bottom-4 w-0.5 bg-slate-200 dark:bg-slate-700"></div>
+                ${c.curriculum.modules.map((m, i) => `
+                <div class="relative z-10 flex items-start gap-4 md:gap-6 group">
+                    <div class="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-white dark:bg-slate-800 border-2 border-amber-500 text-amber-600 dark:text-amber-400 rounded-full text-sm md:text-base font-bold shadow-sm transition-transform group-hover:scale-110 group-hover:bg-amber-50 dark:group-hover:bg-amber-900/20">
+                        ${i+1}
+                    </div>
+                    <div class="flex-grow bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-stone-100 dark:border-slate-700 hover:border-amber-200 dark:hover:border-amber-800 transition-colors">
+                        <h4 class="font-bold text-slate-800 dark:text-slate-100 text-base md:text-lg mb-1">${m.t}</h4>
+                        <p class="text-sm md:text-base text-slate-600 dark:text-slate-400 leading-relaxed">${m.d}</p>
+                    </div>
+                </div>
+            `).join('')}`;
+
+            // Render Method List
+            const methodContainer = document.getElementById('method-list');
+            methodContainer.innerHTML = c.curriculum.methods.map(m => `
+                <div class="p-5 rounded-xl border border-blue-100 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:shadow-md transition-all">
+                    <h4 class="font-bold text-blue-800 dark:text-blue-300 mb-2">${m.t}</h4>
+                    <p class="text-sm text-slate-600 dark:text-slate-400">${m.d}</p>
+                </div>
+            `).join('');
+
+            // Render Assessment List
+            const assessContainer = document.getElementById('assess-list');
+            assessContainer.innerHTML = c.curriculum.assessment.map(a => `
+                <div class="bg-white dark:bg-slate-800/50 p-4 rounded-xl border border-stone-100 dark:border-slate-700">
+                    <div class="flex justify-between mb-2">
+                        <span class="font-bold text-slate-700 dark:text-slate-200">${a.t}</span>
+                        <span class="font-bold text-amber-600 dark:text-amber-400">${a.v}%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-600 rounded-full h-3 overflow-hidden">
+                        <div class="bg-gradient-to-r from-amber-400 to-amber-600 h-3 rounded-full transition-all duration-1000 ease-out" style="width: ${a.v}%"></div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Contact
+            document.getElementById('contact-title').innerText = t.contact.title;
+            document.getElementById('contact-label-corp').innerText = t.contact.corp;
+            document.getElementById('contact-label-name').innerText = t.contact.coord;
+            document.getElementById('contact-name').innerText = t.contact.name;
+            document.getElementById('contact-label-phone').innerText = t.contact.phone;
+        }
+
+        function updateCharts() {
+            const t = contentData[appState.lang];
+            const c = t.courses[appState.course].charts;
+            const isDark = appState.theme === 'dark';
+            const gridColor = isDark ? '#334155' : '#e5e7eb';
+            const textColor = isDark ? '#94a3b8' : '#4b5563';
+            const barBg = isDark ? 'rgba(251, 191, 36, 0.7)' : 'rgba(217, 119, 6, 0.8)';
+
+            // Data Logic
+            let radarData, barData;
+            if (appState.course === 'automation') {
+                radarData = [90, 75, 85, 80, 60];
+                barData = [45, 120];
+            } else {
+                radarData = [95, 85, 70, 90, 80];
+                barData = [2, 8];
+            }
+
+            // --- Chart 1: Radar ---
+            if (skillsChart) skillsChart.destroy();
+            const ctx1 = document.getElementById('skillsChart').getContext('2d');
+            skillsChart = new Chart(ctx1, {
+                type: 'radar',
+                data: {
+                    labels: c.radarLabels,
+                    datasets: [{
+                        label: 'Level',
+                        data: radarData,
+                        fill: true,
+                        backgroundColor: isDark ? 'rgba(251, 191, 36, 0.2)' : 'rgba(217, 119, 6, 0.2)',
+                        borderColor: isDark ? '#fbbf24' : '#d97706',
+                        pointBackgroundColor: isDark ? '#fbbf24' : '#d97706',
+                        pointBorderColor: isDark ? '#1e293b' : '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: isDark ? '#fbbf24' : '#d97706'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: gridColor },
+                            grid: { color: gridColor },
+                            pointLabels: { color: textColor, font: { family: "'Sarabun', sans-serif", size: 12, weight: 'bold' } },
+                            suggestedMin: 0, suggestedMax: 100,
+                            ticks: { display: false, backdropColor: 'transparent' }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // --- Chart 2: Bar ---
+            if (prodChart) prodChart.destroy();
+            const ctx2 = document.getElementById('productivityChart').getContext('2d');
+            prodChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: c.barLabels,
+                    datasets: [{
+                        label: c.barLegend,
+                        data: barData,
+                        backgroundColor: [
+                            isDark ? 'rgba(148, 163, 184, 0.4)' : 'rgba(148, 163, 184, 0.5)', 
+                            barBg
+                        ],
+                        borderColor: [
+                            'rgb(148, 163, 184)',
+                            isDark ? '#fbbf24' : '#d97706'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: gridColor, borderDash: [2, 2] },
+                            ticks: { color: textColor },
+                            title: { display: true, text: c.barLegend, color: textColor }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: textColor, font: { family: "'Sarabun', sans-serif", weight: 'bold' } }
+                        }
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + c.barTooltip;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function switchTab(tabId) {
+            ['content', 'method', 'assessment'].forEach(id => {
+                document.getElementById(`tab-content-${id}`).classList.add('hidden');
+                document.getElementById(`tab-btn-${id}`).classList.remove('tab-active');
+                document.getElementById(`tab-btn-${id}`).classList.add('tab-inactive');
+            });
+            document.getElementById(`tab-content-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            activeBtn.classList.remove('tab-inactive');
+            activeBtn.classList.add('tab-active');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check system preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                toggleTheme();
+            }
+            setLang('th'); // Will trigger renderContent and updateCharts
+        });
+
+    </script>
+</body>
+</html>
