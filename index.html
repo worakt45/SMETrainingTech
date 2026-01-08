@@ -23,11 +23,16 @@
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'bounce-slight': 'bounceSlight 1s infinite',
                     },
                     keyframes: {
                         fadeIn: {
                             '0%': { opacity: '0', transform: 'translateY(10px)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        bounceSlight: {
+                            '0%, 100%': { transform: 'translateY(-25%)', animationTimingFunction: 'cubic-bezier(0.8,0,1,1)' },
+                            '50%': { transform: 'translateY(0)', animationTimingFunction: 'cubic-bezier(0,0,0.2,1)' },
                         }
                     }
                 }
@@ -48,72 +53,101 @@
             .chart-container { height: 350px; }
         }
         
-        /* Smooth Transition for Theme Switch */
         body, div, nav, button, p, h1, h2, h3, h4, h5, li, span, select {
             transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        /* Custom Scrollbar for tabs */
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .tab-active {
-            border-bottom: 3px solid;
-            border-color: #d97706;
-            color: #d97706;
-            font-weight: 600;
+        .tab-active { border-bottom: 3px solid #d97706; color: #d97706; font-weight: 600; }
+        .dark .tab-active { border-color: #fbbf24; color: #fbbf24; }
+        .tab-inactive { color: #64748b; }
+        .dark .tab-inactive { color: #94a3b8; }
+        .tab-inactive:hover { color: #334155; }
+        .dark .tab-inactive:hover { color: #e2e8f0; }
+
+        /* Course Button Styles */
+        .course-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .dark .tab-active {
-            border-color: #fbbf24;
-            color: #fbbf24;
+        .course-btn-active {
+            background-color: #d97706; /* amber-600 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.3);
+            transform: scale(1.05);
         }
-        .tab-inactive {
-            color: #64748b;
+        .dark .course-btn-active {
+            background-color: #fbbf24; /* amber-400 */
+            color: #1e293b; /* slate-800 */
+            box-shadow: 0 4px 6px -1px rgba(251, 191, 36, 0.3);
         }
-        .dark .tab-inactive {
-            color: #94a3b8;
+        .course-btn-inactive {
+            background-color: transparent;
+            color: #64748b; /* slate-500 */
         }
-        .tab-inactive:hover {
+        .dark .course-btn-inactive {
+            color: #94a3b8; /* slate-400 */
+        }
+        .course-btn-inactive:hover {
+            background-color: rgba(0,0,0,0.05);
             color: #334155;
         }
-        .dark .tab-inactive:hover {
+        .dark .course-btn-inactive:hover {
+            background-color: rgba(255,255,255,0.05);
             color: #e2e8f0;
+        }
+        
+        /* Arrow Indicator Animation */
+        .selection-arrow {
+            display: none;
+        }
+        .course-btn-active .selection-arrow {
+            display: inline-block;
         }
     </style>
     <!-- 
-      FINAL COMPLETE VERSION:
-      1. Fixed Dropdown Translation (Options are now dynamic).
-      2. Enhanced Curriculum Visualization (Added Timeline/Roadmap styling).
-      3. Improved Chart Tooltips (Localized units).
-      4. Verified Dark Mode contrasts.
+      UPDATES:
+      1. Replaced Dropdown with Two Direct-Click Buttons.
+      2. Added "Arrow" (▼) indicator logic to the active button.
+      3. Styled active buttons to "pop" out for instant recognition.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 </head>
 <body class="bg-stone-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 flex flex-col min-h-screen">
 
     <!-- Navbar -->
-    <nav class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-50 border-b border-stone-200 dark:border-slate-700 backdrop-blur-md bg-opacity-90 dark:bg-opacity-90">
-        <div class="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
-            <div class="flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
-                <span class="text-2xl">🚀</span>
-                <div class="text-xl font-bold tracking-tight" id="nav-brand">SME Pro Training</div>
+    <nav class="bg-white dark:bg-slate-800 shadow-md sticky top-0 z-50 border-b border-stone-200 dark:border-slate-700 backdrop-blur-md bg-opacity-95 dark:bg-opacity-95">
+        <div class="container mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
+            
+            <!-- Logo & Brand -->
+            <div class="flex items-center gap-2 cursor-pointer w-full md:w-auto justify-between md:justify-start" onclick="window.scrollTo(0,0)">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">🚀</span>
+                    <div class="text-xl font-bold tracking-tight" id="nav-brand">SME Pro Training</div>
+                </div>
+                <!-- Mobile Dark Mode & Lang (Visible on mobile right side) -->
+                <div class="flex md:hidden gap-2">
+                     <button onclick="toggleTheme()" class="p-2 rounded-full bg-stone-100 dark:bg-slate-700">
+                        <span id="theme-icon-mobile">🌙</span>
+                    </button>
+                </div>
             </div>
             
-            <div class="flex items-center gap-2 md:gap-4 overflow-x-auto hide-scrollbar pb-1 md:pb-0">
-                <!-- Course Switcher (Dynamic Translation) -->
-                <div class="relative group">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-lg">🎓</span>
-                    <select id="course-select" onchange="changeCourse(this.value)" class="pl-10 pr-8 py-2 bg-stone-100 dark:bg-slate-700 border-none rounded-lg text-sm font-medium focus:ring-2 focus:ring-amber-500 cursor-pointer appearance-none min-w-[160px]">
-                        <!-- Options populated by JS -->
-                    </select>
-                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs opacity-50">▼</span>
-                </div>
+            <!-- Center: Course Selector (The Main Focus) -->
+            <div class="bg-stone-100 dark:bg-slate-700/50 p-1.5 rounded-xl flex items-center gap-1 w-full md:w-auto overflow-x-auto">
+                <button onclick="changeCourse('automation')" id="btn-course-auto" class="course-btn flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 min-w-[140px]">
+                    <span class="selection-arrow animate-bounce-slight">▼</span>
+                    <span id="text-course-auto">Automation</span>
+                </button>
+                <button onclick="changeCourse('designThinking')" id="btn-course-dt" class="course-btn flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 min-w-[140px]">
+                    <span class="selection-arrow animate-bounce-slight">▼</span>
+                    <span id="text-course-dt">Design Thinking</span>
+                </button>
+            </div>
 
+            <!-- Right: Tools (Lang & Desktop Dark Mode) -->
+            <div class="hidden md:flex items-center gap-3">
                 <!-- Language Switcher -->
                 <div class="flex rounded-lg shadow-sm bg-stone-100 dark:bg-slate-700 p-1" role="group">
                     <button onclick="setLang('th')" class="px-3 py-1 text-xs font-bold rounded-md transition-all" id="btn-lang-th">TH</button>
@@ -123,7 +157,7 @@
 
                 <!-- Dark Mode Toggle -->
                 <button onclick="toggleTheme()" class="p-2 rounded-full bg-stone-200 dark:bg-slate-600 hover:bg-stone-300 dark:hover:bg-slate-500 transition shadow-sm" aria-label="Toggle Dark Mode">
-                    <span id="theme-icon" class="text-lg">🌙</span>
+                    <span id="theme-icon">🌙</span>
                 </button>
             </div>
         </div>
@@ -230,14 +264,13 @@
                 <!-- Tab Content Body -->
                 <div class="p-8 md:p-10 flex-grow">
                     
-                    <!-- Content Tab (Enhanced with Timeline) -->
+                    <!-- Content Tab (Timeline) -->
                     <div id="tab-content-content" class="animate-fade-in block h-full">
                         <div class="flex items-center gap-3 mb-8">
                             <span class="text-2xl bg-amber-100 dark:bg-amber-900 text-amber-600 dark:text-amber-400 p-2 rounded-lg">📚</span>
                             <h3 id="module-header" class="text-xl font-bold text-slate-800 dark:text-white">หัวข้อการเรียนรู้หลัก</h3>
                         </div>
                         
-                        <!-- Timeline Structure -->
                         <div class="relative pl-4 md:pl-8 space-y-8" id="module-list">
                             <!-- Populated by JS -->
                         </div>
@@ -270,7 +303,6 @@
 
         <!-- Contact Section -->
         <section id="contact" class="scroll-mt-24 bg-gradient-to-br from-slate-900 to-slate-800 dark:from-black dark:to-slate-900 text-white rounded-3xl p-10 md:p-16 text-center shadow-2xl relative overflow-hidden">
-            <!-- Decorative Circles -->
             <div class="absolute top-0 left-0 w-64 h-64 bg-white opacity-5 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
             <div class="absolute bottom-0 right-0 w-96 h-96 bg-amber-500 opacity-10 rounded-full translate-x-1/3 translate-y-1/3 blur-3xl"></div>
             
@@ -319,8 +351,8 @@
             th: {
                 navTitle: "ระบบฝึกอบรม SME",
                 courseSelect: {
-                    automation: "🤖 หลักสูตรระบบอัตโนมัติ",
-                    designThinking: "💡 หลักสูตร Design Thinking"
+                    automation: "ระบบอัตโนมัติ",
+                    designThinking: "Design Thinking"
                 },
                 courses: {
                     automation: {
@@ -411,8 +443,8 @@
             en: {
                 navTitle: "SME Training System",
                 courseSelect: {
-                    automation: "🤖 Automation Course",
-                    designThinking: "💡 Design Thinking Course"
+                    automation: "Automation",
+                    designThinking: "Design Thinking"
                 },
                 courses: {
                     automation: {
@@ -503,8 +535,8 @@
             cn: {
                 navTitle: "中小企业培训系统",
                 courseSelect: {
-                    automation: "🤖 自动化系统课程",
-                    designThinking: "💡 设计思维课程"
+                    automation: "自动化系统",
+                    designThinking: "设计思维"
                 },
                 courses: {
                     automation: {
@@ -611,7 +643,10 @@
             appState.theme = appState.theme === 'light' ? 'dark' : 'light';
             document.documentElement.classList.toggle('dark');
             const icon = document.getElementById('theme-icon');
-            icon.innerText = appState.theme === 'light' ? '🌙' : '☀️';
+            const mobileIcon = document.getElementById('theme-icon-mobile');
+            const iconChar = appState.theme === 'light' ? '🌙' : '☀️';
+            icon.innerText = iconChar;
+            if(mobileIcon) mobileIcon.innerText = iconChar;
             updateCharts();
         }
 
@@ -643,16 +678,29 @@
             const t = contentData[appState.lang];
             const c = t.courses[appState.course];
 
-            // Navbar & Course Select
+            // Navbar
             document.getElementById('nav-brand').innerText = t.navTitle;
             
-            // Dynamic Dropdown Options
-            const select = document.getElementById('course-select');
-            select.innerHTML = `
-                <option value="automation" ${appState.course === 'automation' ? 'selected' : ''}>${t.courseSelect.automation}</option>
-                <option value="designThinking" ${appState.course === 'designThinking' ? 'selected' : ''}>${t.courseSelect.designThinking}</option>
-            `;
-            
+            // --- UPDATE COURSE BUTTONS (The main visual change) ---
+            document.getElementById('text-course-auto').innerText = t.courseSelect.automation;
+            document.getElementById('text-course-dt').innerText = t.courseSelect.designThinking;
+
+            const btnAuto = document.getElementById('btn-course-auto');
+            const btnDt = document.getElementById('btn-course-dt');
+
+            if (appState.course === 'automation') {
+                btnAuto.classList.add('course-btn-active');
+                btnAuto.classList.remove('course-btn-inactive');
+                btnDt.classList.add('course-btn-inactive');
+                btnDt.classList.remove('course-btn-active');
+            } else {
+                btnDt.classList.add('course-btn-active');
+                btnDt.classList.remove('course-btn-inactive');
+                btnAuto.classList.add('course-btn-inactive');
+                btnAuto.classList.remove('course-btn-active');
+            }
+            // ----------------------------------------------------
+
             // Hero
             document.getElementById('hero-tag').innerText = c.heroTag;
             document.getElementById('hero-title').innerHTML = c.heroTitle;
@@ -676,19 +724,18 @@
             document.getElementById('chart1-title').innerText = c.charts.c1t;
             document.getElementById('chart2-title').innerText = c.charts.c2t;
 
-            // Curriculum Structure (Title & Tabs)
+            // Curriculum Structure
             document.getElementById('curr-title').innerText = appState.lang === 'th' ? "โครงสร้างหลักสูตร" : (appState.lang === 'cn' ? "课程结构" : "Curriculum Structure");
             document.getElementById('curr-desc').innerText = appState.lang === 'th' ? "รายละเอียดเนื้อหาและการประเมินผล" : (appState.lang === 'cn' ? "内容详情及评估" : "Content details and evaluation");
             document.getElementById('tab-btn-content').innerText = t.tabs[0];
             document.getElementById('tab-btn-method').innerText = t.tabs[1];
             document.getElementById('tab-btn-assessment').innerText = t.tabs[2];
 
-            // Internal Tab Headers
             document.getElementById('module-header').innerText = t.currHeaders[0];
             document.getElementById('method-header').innerText = t.currHeaders[1];
             document.getElementById('assess-header').innerText = t.currHeaders[2];
 
-            // --- Render Modules List (TIMELINE STYLE) ---
+            // Render Modules List (Timeline)
             const modContainer = document.getElementById('module-list');
             modContainer.innerHTML = `
                 <div class="absolute left-[27px] md:left-[43px] top-4 bottom-4 w-0.5 bg-slate-200 dark:bg-slate-700"></div>
